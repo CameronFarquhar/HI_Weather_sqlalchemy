@@ -38,8 +38,16 @@ def welcome():
     )
 
 @app.route("/api/v1.0/precipitation")
-def welcome():
-    
+def precipitation():
+    session = Session(engine)
+
+    result = session.query(measurement.date, measurement.prcp).all()
+
+    session.close()
+
+    all_prcp = list(np.ravel(result))
+
+    return jsonify(all_prcp)
 
 if __name__ == '__main__':
     app.run(debug=True)
