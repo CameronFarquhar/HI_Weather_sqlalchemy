@@ -45,9 +45,26 @@ def precipitation():
 
     session.close()
 
-    all_prcp = list(np.ravel(result))
+    date_percip = []
+    for date, prcp in result:
+        date_percip_dict = {date:prcp}
+        date_percip.append(date_percip_dict)
 
-    return jsonify(all_prcp)
+    # all_prcp = list(np.ravel(result))
+
+    return jsonify(date_percip)
+
+@app.route("/api/v1.0/stations")
+def stations():
+    session = Session(engine)
+
+    result = session.query(station.station).all()
+
+    session.close()
+
+    all_stations = list(np.ravel(result))
+
+    return jsonify(all_stations)
 
 if __name__ == '__main__':
     app.run(debug=True)
