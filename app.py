@@ -29,12 +29,12 @@ app = Flask(__name__)
 def welcome():
     """List all available api routes."""
     return (
-        f"Available Routes:<br/>"
-        f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/stations<br/>"
-        f"/api/v1.0/tobs<br/>"
-        # f"/api/v1.0/<start><br/>"
-        # f"/api/v1.0/<start>/<end>"
+        f"<h3>Available Routes</h3>"
+        f"<ul><li>/api/v1.0/precipitation</li>"
+        f"<li>/api/v1.0/stations</li>"
+        f"<li>/api/v1.0/tobs</li>"
+        +"<li>/api/v1.0/<{start date}><li>" +
+        "/api/v1.0/{<start date}/{end date}></li></ul>"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -45,12 +45,12 @@ def precipitation():
 
     session.close()
 
+    # date_percip = [{"Date": result[0], "precipitation": result[1]} for date, prcp in result]
+
     date_percip = []
     for date, prcp in result:
         date_percip_dict = {date:prcp}
         date_percip.append(date_percip_dict)
-
-    # all_prcp = list(np.ravel(result))
 
     return jsonify(date_percip)
 
@@ -58,7 +58,7 @@ def precipitation():
 def stations():
     session = Session(engine)
 
-    result = session.query(station.station).all()
+    result = session.query(station.station, station.name).all()
 
     session.close()
 
@@ -66,5 +66,37 @@ def stations():
 
     return jsonify(all_stations)
 
+@app.route("/api/v1.0/tobs")
+def tobs():
+    session = Session(engine)
+
+    # result = session.query(measurement.station).\
+    # group_by(measurement.station).\
+    # order_by(func.count(measurement.station).desc()).first()
+
+    return {date: tobs for date, tobs in session.query(measurement.date, measurement.tobs).all()}
+
+    session.close()
+
+    return jsonify(result)
+
+
+@app.route("/api/v1.0/<start>")
+@app.route("/api/v1.0/<start><end>")
+def start_end(start, end):
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+    session = Session(engine)
+
+        # geronimo's code in percipitation
+
+    # response = {}
+    # for date, prcp in result:
+    #     responde [date]: prcp
+
+    # print(response)
