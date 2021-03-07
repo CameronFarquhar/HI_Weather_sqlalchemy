@@ -7,6 +7,8 @@ from sqlalchemy import create_engine, func
 
 from flask import Flask, jsonify
 
+import datetime as dt
+
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # reflect an existing database into a new model
@@ -33,8 +35,8 @@ def welcome():
         f"<ul><li>/api/v1.0/precipitation</li>"
         f"<li>/api/v1.0/stations</li>"
         f"<li>/api/v1.0/tobs</li>"
-        +"<li>/api/v1.0/<{start date}><li>" +
-        "/api/v1.0/{<start date}/{end date}></li></ul>"
+        +"<li>/api/v1.0/<{start date}><li>"
+        +"/api/v1.0/{<start date}/{end date}></li></ul>"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -70,33 +72,41 @@ def stations():
 def tobs():
     session = Session(engine)
 
-    # result = session.query(measurement.station).\
-    # group_by(measurement.station).\
-    # order_by(func.count(measurement.station).desc()).first()
+    rct_date = session.query(measurement.date).order_by(measurement.date.desc()).first()[0]
 
-    return {date: tobs for date, tobs in session.query(measurement.date, measurement.tobs).all()}
+    year_to_date = dt.datetime.strptime(rct_date,'%Y-%m-%d') - dt.timedelta(days=365)
+
+    most_active = session.query(measurement.station, func.count(measurement.station)).\
+    group_by(measurement.station).\
+    order_by(func.count(measurement.station).desc()).first()[0]
+
+    result = session.query(measurement.date,measurement.tobs).\
+        filter(measurement.date >= year_to_date).\
+        filter(measurement.station == most_active).all()
+
+    # return {date: tobs for date, tobs in session.query(measurement.date, measurement.tobs).all()}
 
     session.close()
 
     return jsonify(result)
 
 
-@app.route("/api/v1.0/<start>")
-@app.route("/api/v1.0/<start><end>")
-def start_end(start, end):
+# @app.route("/api/v1.0/<start>")
+# @app.route("/api/v1.0/<start><end>")
+# def start_end(start, end):
 
 
 
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
-    session = Session(engine)
+    # session = Session(engine)
 
         # geronimo's code in percipitation
 
     # response = {}
     # for date, prcp in result:
-    #     responde [date]: prcp
+    #     response [date]: prcp
 
     # print(response)
