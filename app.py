@@ -27,6 +27,7 @@ station = Base.classes.station
 
 app = Flask(__name__)
 
+#designate path names
 @app.route("/")
 def welcome():
     """List all available api routes."""
@@ -35,10 +36,11 @@ def welcome():
         f"<ul><li>/api/v1.0/precipitation</li>"
         f"<li>/api/v1.0/stations</li>"
         f"<li>/api/v1.0/tobs</li>"
-        f"<li>/api/v1.0/<start><li>"
-        # +"/api/v1.0/{<start}/{end}></li></ul>"
+        f"<li>/api/v1.0/start</li>"
+        f"<li>/api/v1.0/start/end</li>"
     )
 
+# show date and precipitation
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     session = Session(engine)
@@ -47,8 +49,6 @@ def precipitation():
 
     session.close()
 
-    # date_percip = [{"Date": result[0], "precipitation": result[1]} for date, prcp in result]
-
     date_percip = []
     for date, prcp in result:
         date_percip_dict = {date:prcp}
@@ -56,6 +56,7 @@ def precipitation():
 
     return jsonify(date_percip)
 
+#show the list of sations
 @app.route("/api/v1.0/stations")
 def stations():
     session = Session(engine)
@@ -68,6 +69,7 @@ def stations():
 
     return jsonify(all_stations)
 
+#show temperature observations after for 1 year to date after the last observation
 @app.route("/api/v1.0/tobs")
 def tobs():
     session = Session(engine)
@@ -84,72 +86,23 @@ def tobs():
         filter(measurement.date >= year_to_date).\
         filter(measurement.station == most_active).all()
 
-    # return {date: tobs for date, tobs in session.query(measurement.date, measurement.tobs).all()}
 
     session.close()
 
     return jsonify(result)
 
-
+#show min, avg, and max tobs between specified dates
 @app.route("/api/v1.0/<start>")
-def start_date(start):
+@app.route("/api/v1.0/<start>/<end>")
+def start_date(start, end = '2017-08-07'):
     
     session = Session(engine)
 
-    # result = session.query(measurement.date,measurement.tobs).\
-    #     filter(measurement.date >= 'start').all()
-    
+    result = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
+        filter((measurement.date >= start) & (measurement.date <= end)).all()[0]
+    res = {f'{start} - {end}': result}
 
-    result = session.query(measurement.date,measurement.tobs).all()
-
-    for date, tobs in result:
-        if date >= start:
-            TMIN = min(tobs)
-            TMAX = max(tobs)
-            return jsonify(TIM,TMAX)
-
-    return jsonify({"error": "Character not found."}), 404
-
-
-
-
-    # canonicalized = start.replace("/", "-").lower()
-
-    # temp_list = []
-
-    # for tobs, date in result:
-    #     temp_dict = {}
-    #     temp_dict['TMIN'] = min(tobs)
-    #     temp_dict['TAVG'] = sum(tobs)/len(tobs)
-    #     temp_dict['TMAX'] = max(tobs)
-    #     temp_list.append(temp_dict)
-
-    #     search_term = date["start"].replace("/", "-").lower()
-            
-    #     if search_term == canonicalized:
-    #         return jsonify(temp_list)
-    
-    
-    # return jsonify(result)
-    
-    
-    # return jsonify({"error": "Character not found."}), 404
-
-# @app.route("/api/v1.0/<start><end>")
-# def start_end(start, end):
-
-
-
-
+    return res
 
 if __name__ == "__main__":
     app.run(debug=True)
-    # session = Session(engine)
-
-        # geronimo's code in percipitation
-
-    # response = {}
-    # for date, prcp in result:
-    #     response [date]: prcp
-
-    # print(response)
