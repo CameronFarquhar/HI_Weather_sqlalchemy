@@ -35,8 +35,8 @@ def welcome():
         f"<ul><li>/api/v1.0/precipitation</li>"
         f"<li>/api/v1.0/stations</li>"
         f"<li>/api/v1.0/tobs</li>"
-        +"<li>/api/v1.0/<{start date}><li>"
-        +"/api/v1.0/{<start date}/{end date}></li></ul>"
+        f"<li>/api/v1.0/<start><li>"
+        # +"/api/v1.0/{<start}/{end}></li></ul>"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -91,7 +91,50 @@ def tobs():
     return jsonify(result)
 
 
-# @app.route("/api/v1.0/<start>")
+@app.route("/api/v1.0/<start>")
+def start_date(start):
+    
+    session = Session(engine)
+
+    # result = session.query(measurement.date,measurement.tobs).\
+    #     filter(measurement.date >= 'start').all()
+    
+
+    result = session.query(measurement.date,measurement.tobs).all()
+
+    for date, tobs in result:
+        if date >= start:
+            TMIN = min(tobs)
+            TMAX = max(tobs)
+            return jsonify(TIM,TMAX)
+
+    return jsonify({"error": "Character not found."}), 404
+
+
+
+
+    # canonicalized = start.replace("/", "-").lower()
+
+    # temp_list = []
+
+    # for tobs, date in result:
+    #     temp_dict = {}
+    #     temp_dict['TMIN'] = min(tobs)
+    #     temp_dict['TAVG'] = sum(tobs)/len(tobs)
+    #     temp_dict['TMAX'] = max(tobs)
+    #     temp_list.append(temp_dict)
+
+    #     search_term = date["start"].replace("/", "-").lower()
+            
+    #     if search_term == canonicalized:
+    #         return jsonify(temp_list)
+    
+    
+    # return jsonify(result)
+    
+    
+    # return jsonify({"error": "Character not found."}), 404
+
 # @app.route("/api/v1.0/<start><end>")
 # def start_end(start, end):
 
