@@ -94,7 +94,7 @@ def tobs():
 #show min, avg, and max tobs between specified dates
 @app.route("/api/v1.0/<start>")
 @app.route("/api/v1.0/<start>/<end>")
-def start_date(start, end = '2017-08-07'):
+def start_date(start, end = '2017-08-23'):
     
     session = Session(engine)
 
