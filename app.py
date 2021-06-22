@@ -69,7 +69,7 @@ def stations():
 
     return jsonify(all_stations)
 
-#show temperature observations after for 1 year to date after the last observation
+#show temperature observations 1 year to date before the last observation
 @app.route("/api/v1.0/tobs")
 def tobs():
     session = Session(engine)
@@ -95,11 +95,12 @@ def tobs():
 @app.route("/api/v1.0/<start>")
 @app.route("/api/v1.0/<start>/<end>")
 def start_date(start, end = '2017-08-23'):
-    
+
     session = Session(engine)
 
     result = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
         filter((measurement.date >= start) & (measurement.date <= end)).all()[0]
+
     res = {f'{start} - {end}': result}
 
     return res
